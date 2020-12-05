@@ -1,0 +1,134 @@
+This code uses chirp packet trains (UDP) to estimate available
+bandwidth (unused capacity) in the network.  The SENDER
+(pathchirp_snd) and RECEIVER (pathchirp_rcv) modules run as daemons on
+hosts at opposite edges of a path to be probed. Chirp packet trains
+travel from the SENDER to the RECEIVER.
+
+We initiate the pathchirp probing using a third module, pathchirp_run,
+which can be run on any host (called the MASTER). This module also
+collects the results of the experiment and stores them in a file
+locally. Thus experiments can be initiated and the results analyzed
+from a central location in the Internet which runs the pathchirp_run
+module.
+
+The pathchirp_snd and pathchirp_rcv modules can be started on
+different machines around the Internet and will run indefinitely. They
+need not be restarted for each experiment.
+
+
+	         chirps
+     SENDER ----------------> RECEIVER (pathchirp_rcv)	
+   (pathchirp_snd)	         |
+			  	 |		
+      			      MASTER (pathchirp_run)
+                 (starts experiment/collects results)
+
+
+
+
+CORRESPONDENCE
+==============
+
+Please do send your comments about the performance of this available
+bandwidth estimation tool, and any changes you feel would make the
+tool more convenient or user friendly. Please let us know what
+applications you need available bandwidth tools for so that we can meet
+your needs best. The current tool is designed to be a low bit rate 
+tool for monitoring available bandwidth over long durations of time. 
+
+Contact: Vinay Ribeiro, vinay@rice.edu
+
+
+COMPILE INSTRUCTIONS
+====================
+Run the following:
+1) ./configure   
+2) make
+                                                                             
+The following will be generated:
+
+Bin/<host_cpu>/pathchirp_rcv
+Bin/<host_cpu>/pathchirp_snd
+Bin/<host_cpu>/pathchirp_run
+
+For example on certain Linux boxes <host_cpu>=i686.
+
+
+RUNNING EXPERIMENTS
+===================
+
+1) SENDER (needs to be run just once)
+
+Bin/<host_cpu>/pathchirp_snd 
+
+Options:
+	 -U <sender port, default=8365>
+	 -h 	Help: produces this output
+	 -v version
+	 -D print debug information
+
+NOTE ON PORT NUMBER: In case the default port number is already used
+at the sender, try out other port numbers larger than 1024 using the
+-U option.  The receiver must then use the same port number with the -U 
+option.
+
+2) RECEIVER (needs to be run just once)
+
+Bin/<host_cpu>/pathchirp_rcv
+
+Options:
+	-h Help
+	-v Version
+	-D print debug information 
+
+
+3) MASTER (needs to be rerun for each experiment) 
+
+Bin/<host_cpu>/pathchirp_run -S <sender> -R <receiver> -t <expt. duration (secs)>
+
+ ** In case of interrupt coalescence on Gigabit networks use the -J option:
+Example:
+Bin/<host_cpu>/pathchirp_rcv -S <sender> -R <receiver> -t <expt. duration (secs)> -J 6
+
+
+All Options:
+
+	 -n <number of estimates to smooth over, default=11>
+ 	 -d <decrease factor (>1), default=1.5>
+ 	 -b <busy period length (integer >2), default=5>
+ 	 -U <receiver port (chirp UDP), default=8365 (1024-65535)>
+ 	 -h Help: produces this output
+	 -S 	 sender host name or IP address 
+	 -R 	 receiver host name or IP address 
+	 -J 	 number of packets per Jumbo packet,default=1. In case of packet coalescence use values larger than 1, e.g. -J 6 
+	 -l 	 lowest rate (Mbps) to probe at within chirp, default=10.000000Mbps. NOTE: by default pathchirp will find an appropriate probing range.
+	 -u 	 highest rate (Mbps) to probe at within chirp, default=200.000000Mbps
+	 -p 	 packet size <40-8200>,default=1000 bytes
+	 -t 	 duration of experiment(sec), default=600 sec 
+	 -s 	 spread factor: ratio of consecutive inter-arrivals within a chirp, default=1.2 
+	 -a 	 average probing rate (Mbps), default=0.3Mbps 
+	 -v version
+
+
+OUTPUT FILE
+===========
+
+At the MASTER, the file
+
+	 <sender_name>_<receiver_name>_<time stamp>.instbw
+
+will be generated in the directory from which the code is run.
+
+
+FORMAT of the file: 
+
+ <time_stamp> <avail-bw estimate (Mbps)>
+
+
+
+
+
+
+
+
+
